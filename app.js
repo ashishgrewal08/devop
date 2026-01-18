@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const express=require("express");
 const app=express();
+const healthRouter = require("./routes/health.js");
 const mongoose=require("mongoose");
 const path = require("path");
 const methodOverride=require("method-override");
@@ -19,7 +20,7 @@ const User=require("./models/user.js");
 const listingRouter=require("./routes/listing.js");
 const reviewRouter=require("./routes/review.js");
 const userRouter=require("./routes/user.js");
-const healthRouter = require("./routes/health.js");
+
 
 
 //const MONGO_URL="mongodb://127.0.0.1:27017/greywall"; 
@@ -101,7 +102,12 @@ const sessionOptions={
 
 
 
-app.use(session(sessionOptions));
+app.use("/", healthRouter);   // FIRST middleware
+if (process.env.NODE_ENV !== "test") {
+  app.use(session(sessionOptions));
+}
+
+
 app.use(flash());
 
 app.use(passport.initialize());
@@ -122,7 +128,7 @@ app.use((req,res,next)=>{
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
-app.use("/", healthRouter);
+
 
  
 app.all("*",(req,res,next)=>{
