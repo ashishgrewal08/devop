@@ -25,16 +25,32 @@ const healthRouter = require("./routes/health.js");
 //const MONGO_URL="mongodb://127.0.0.1:27017/greywall"; 
 const dbUrl=process.env.ATLASDB_URL;
 
-main()
-.then(()=>{
-    console.log("connected to DB"); 
-})
-.catch((err)=>{
-    console.log(err);
-});
+// main()
+// .then(()=>{
+//     console.log("connected to DB"); 
+// })
+// .catch((err)=>{
+//     console.log(err);
+// });
+
+// async function main(){
+//     await mongoose.connect(dbUrl);
+// }
+
+
+if (process.env.NODE_ENV !== "test") {
+  main()
+    .then(() => {
+      console.log("connected to DB");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
 async function main(){
-    await mongoose.connect(dbUrl);
-}  
+  await mongoose.connect(dbUrl);
+}
+
 
 app.set("view engine","ejs");
 app.set("views",path.join(__dirname,"views"));
@@ -43,13 +59,22 @@ app.use(methodOverride("_method"));
 app.engine('ejs',ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
-const store=MongoStore.create({
-    mongoUrl:dbUrl,
-    crypto:{
-        secret:process.env.SECRET,
-    },
-    touchAfter:24*3600,
-});
+// const store=MongoStore.create({
+//     mongoUrl:dbUrl,
+//     crypto:{
+//         secret:process.env.SECRET,
+//     },
+//     touchAfter:24*3600,
+// });
+let store;
+
+if (process.env.NODE_ENV !== "test") {
+  store = MongoStore.create({
+    mongoUrl: dbUrl,
+    crypto:{ secret: process.env.SECRET }
+  });
+}
+
 
 store.on("error",()=>{
     console.log("ERROR in MONGO SESSION STORE",err);
