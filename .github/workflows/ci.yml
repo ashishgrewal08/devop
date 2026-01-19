@@ -1,15 +1,41 @@
+# name: CI
+
+# on: [push]
+
+# jobs:
+#   test-build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: 18
+#       - run: npm install
+#       - run: NODE_ENV=test npm test
+#       - run: docker build -t greywall .
+      
 name: CI
 
 on: [push]
 
 jobs:
-  test-build:
+  test-build-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+
       - run: npm install
       - run: NODE_ENV=test npm test
-      - run: docker build -t greywall .
+
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/greywall:${{ github.sha }} .
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/greywall:${{ github.sha }}
